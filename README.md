@@ -11,7 +11,7 @@ so if you dont have the "key" it very hard to go look for something
 now every file is divided to "password"side and non password side if I start with "a" and use a password I do that when I create a trail to put a info or file 
 down below so password 123 and press "a" file second level password abc press "b" file and so on i can choose password yes or no on the way down.  now "a" file with a password is not the same as "a" with a password that makes it even harder to find anything, it split the file 
 thats the idea in general, it's basiclly one file that is duplicated to fifty and again and so on. not sure if you can do it in windows or linux if there is room in windows/linux computer for all these files or do it on external ssd with few terabytes..
-the Idea is that if someone try's to look for your info it takes a long long time to look for it, and time cost money, 
+the Idea is that if someone try's to look for your info/files you've hidden it takes a long long time to look for it, and time cost money, 
 so that it, I have no idea what to do from here is anybody got idea's I want it to be open source free to use, please give me feedback on in if you can  
 Thanks fi222
 
