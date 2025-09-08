@@ -1,0 +1,105 @@
+//@version=5
+strategy("Crypto EMA RSI Combo Bot – Live", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.1, initial_capital=100000, currency=currency.USD)
+
+// === EMA Settings ===
+fastLen = input.int(9, title="Fast EMA Length")
+slowLen = input.int(21, title="Slow EMA Length")
+
+// === RSI Settings ===
+rsiLen = input.int(14, title="RSI Length", minval=1)
+rsiThreshold = input.int(50, title="RSI Threshold", minval=1, maxval=99)
+
+// === Trailing Stop Settings ===
+trailPerc = input.float(1.0, title="Trailing Stop (%)", minval=0.1, step=0.1)
+
+// === Risk Settings: Take Profit / Stop Loss ===
+useATRBasedExit = input.bool(true, title="Use ATR for TP/SL")
+tpVal = input.float(2.0, title="Take Profit (Fixed % or ATR Multiplier)", minval=0.1)
+slVal = input.float(1.0, title="Stop Loss (Fixed % or ATR Multiplier)", minval=0.1)
+atrLen = input.int(14, title="ATR Length")
+
+// === Heikin Ashi Filter Settings ===
+useHAfilter = input.bool(true, title="Use Heikin Ashi Confirmation Filter")
+
+// === Position Size Settings ===
+positionType = input.string("Fixed % of Equity", options=["Fixed % of Equity", "Volatility-Based"], title="Position Size Method")
+riskPercent = input.float(2.0, title="Max Risk per Trade (%)", minval=0.1)
+
+// === Heikin Ashi Calculation ===
+getHACandle() =>
+    haClose = (open + high + low + close) / 4
+    var float haOpen = na
+    haOpen := na(haOpen[1]) ? (open + close) / 2 : (haOpen[1] + haClose[1]) / 2
+    haHigh = math.max(high, haOpen, haClose)
+    haLow = math.min(low, haOpen, haClose)
+    [haOpen, haClose, haHigh, haLow]
+
+[haOpen, haClose, haHigh, haLow] = request.security(syminfo.tickerid, timeframe.period, getHACandle())
+
+// === Indicator Calculations ===
+emaFast = ta.ema(close, fastLen)
+emaSlow = ta.ema(close, slowLen)
+rsi = ta.rsi(close, rsiLen)
+atr = ta.atr(atrLen)
+
+// === Entry Conditions ===
+emaBullish = ta.crossover(emaFast, emaSlow)
+emaBearish = ta.crossunder(emaFast, emaSlow)
+
+rsiBullish = rsi > rsiThreshold
+rsiBearish = rsi < (100 - rsiThreshold)
+
+haBullish = haClose > haOpen
+haBearish = haClose < haOpen
+
+longCondition = emaBullish and rsiBullish and (not useHAfilter or haBullish)
+shortCondition = emaBearish and rsiBearish and (not useHAfilter or haBearish)
+
+// === Position Sizing Logic ===
+var float positionSize = na
+if (positionType == "Fixed % of Equity")
+    positionSize := strategy.position_size >= 0 ? default_qty_value : positionSize
+else
+    // Volatility-based sizing: risk % / ATR %
+    riskAmount = riskPercent * 0.01 * strategy.equity
+    volatilityPoints = atr
+    positionSize := riskAmount / (volatilityPoints / close)
+
+// === Strategy Execution ===
+if longCondition
+    if positionType == "Fixed % of Equity"
+        strategy.entry("Long", strategy.long, alert_message="BUY_{{ticker}}")
+    else
+        strategy.entry("Long", strategy.long, qty=positionSize, alert_message="BUY_{{ticker}}")
+
+if shortCondition
+    if positionType == "Fixed % of Equity"
+        strategy.entry("Short", strategy.short, alert_message="SELL_{{ticker}}")
+    else
+        strategy.entry("Short", strategy.short, qty=positionSize, alert_message="SELL_{{ticker}}")
+
+// === Exit Logic: Trailing Stop + Take Profit / Stop Loss ===
+exitPrice = 0.0
+if useATRBasedExit
+    tpPoints = tpVal * atr / syminfo.mintick
+    slPoints = slVal * atr / syminfo.mintick
+else
+    tpPoints = tpVal * close / (100 * syminfo.mintick)
+    slPoints = slVal * close / (100 * syminfo.mintick)
+
+// Long Exit
+if strategy.position_size > 0
+    strategy.exit("Exit Long", from_entry="Long", limit=close + tpPoints * syminfo.mintick, stop=close - slPoints * syminfo.mintick, trail_points=trailPerc * close / syminfo.mintick, trail_offset=trailPerc * close / syminfo.mintick, alert_message="CLOSE_LONG_{{ticker}}")
+
+// Short Exit
+if strategy.position_size < 0
+    strategy.exit("Exit Short", from_entry="Short", limit=close - tpPoints * syminfo.mintick, stop=close + slPoints * syminfo.mintick, trail_points=trailPerc * close / syminfo.mintick, trail_offset=trailPerc * close / syminfo.mintick, alert_message="CLOSE_SHORT_{{ticker}}")
+
+// Optional: Add alerts on condition triggers
+alertcondition(longCondition, title="Long Signal", message="Buy {{ticker}} Now!")
+alertcondition(shortCondition, title="Short Signal", message="Sell {{ticker}} Now!")
+
+// === Visual Plots ===
+plot(emaFast, title="EMA Fast", color=color.green, linewidth=2)
+plot(emaSlow, title="EMA Slow", color=color.red, linewidth=2)
+plot(useHAfilter ? na : haClose, title="Heikin Ashi Close", color=color.blue, style=plot.style_circles)
