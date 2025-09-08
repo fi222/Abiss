@@ -1,0 +1,5 @@
+apps/find_phone_app_android/.gradle/
+apps/find_phone_app_android/build/
+apps/find_phone_app_android/.idea/
+apps/find_phone_app_android/app/build/
+apps/find_phone_app_android/local.properties
