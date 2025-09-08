@@ -1,27 +1,70 @@
-﻿# OS/IDE
+﻿# -------------------------
+# OS / Editor junk
+# -------------------------
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 .vscode/
 .idea/
 
-# Python
+# -------------------------
+# Python (Abyss, Random Shield desktop parts)
+# -------------------------
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 *.pyo
 *.pyd
-build/
+*.pdb
+*.egg
+*.egg-info/
 dist/
+build/
 *.spec
 
-# Flutter/Android
+# -------------------------
+# Flutter / Dart (Random Shield, Find Phone)
+# -------------------------
 **/build/
 **/.dart_tool/
-**/.flutter-plugins*
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
 **/.packages
 **/pubspec.lock
-**/android/.gradle/
-**/android/local.properties
-**/ios/Pods/
+.flutter-plugins
+.flutter-plugins-dependencies
 
+# -------------------------
+# Android Studio / Gradle (Find Phone)
+# -------------------------
+.gradle/
+local.properties
+**/.gradle/
+**/build/
+**/.idea/
+captures/
+*.iml
+*.apk
+*.aab
+
+# -------------------------
+# iOS (if you add iOS later)
+# -------------------------
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+
+# -------------------------
 # Logs
+# -------------------------
 *.log
+
+# -------------------------
+# Git LFS handled binaries
+# -------------------------
+*.exe filter=lfs diff=lfs merge=lfs -text
+*.apk filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+*.ico filter=lfs diff=lfs merge=lfs -text
